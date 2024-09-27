@@ -28,17 +28,36 @@ pub const GameState = struct {
     win_height: f32,
     objects: std.ArrayList(Object),
     allocator: std.mem.Allocator,
+    wall_sprite: rl.Texture2D,
+    finish_sprite: rl.Texture2D,
+    path_sprite: rl.Texture2D,
+    finish_obj: Object = undefined,
     sprites_size: f32 = 40,
 
     const Self = @This();
 
     pub fn init(w: f32, h: f32, alloc: std.mem.Allocator) Self {
+        const wall_sprite = rl.LoadTexture("./assets/wall.png");
+        const finish_sprite = rl.LoadTexture("./assets/finish.png");
+        const path_sprite = rl.LoadTexture("./assets/path.png");
+
         return Self{
             .win_width = w,
             .win_height = h,
             .objects = std.ArrayList(Object).init(alloc),
             .allocator = alloc,
+            .wall_sprite = wall_sprite,
+            .finish_sprite = finish_sprite,
+            .path_sprite = path_sprite,
         };
+    }
+
+    pub fn reachedFinish(self: *Self, pos: rl.Rectangle) bool {
+        return rl.CheckCollisionRecs(pos, self.finish_obj.rect);
+    }
+
+    pub fn updateFinishObj(self: *Self, obj: Object) void {
+        self.finish_obj = obj;
     }
 
     pub fn updateObject(self: *Self, obj: Object, idx: usize) void {
@@ -67,10 +86,14 @@ pub const GameState = struct {
 
     pub fn drawObjects(self: *Self) void {
         for (self.objects.items) |obj| {
-            switch (obj.state) {
-                .Wall => rl.DrawRectangleRec(obj.rect, rl.BLUE),
-                .Path => rl.DrawRectangleRec(obj.rect, rl.GRAY),
-                .Finish => rl.DrawRectangleRec(obj.rect, rl.GREEN),
+            const sprite = switch (obj.state) {
+                .Wall => self.wall_sprite,
+                .Path => self.path_sprite,
+                .Finish => self.finish_sprite,
+            };
+
+            if (rl.IsTextureReady(sprite)) {
+                rl.DrawTexture(sprite, @intFromFloat(obj.rect.x), @intFromFloat(obj.rect.y), rl.RAYWHITE);
             }
         }
     }

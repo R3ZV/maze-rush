@@ -23,7 +23,7 @@ pub fn Maze(w: u32, h: u32, sprite_w: u32) type {
             };
         }
 
-        fn isExit(self: *const Self, pos: [2]u32) bool {
+        pub fn isExit(self: *const Self, pos: [2]u32) bool {
             return pos[0] == 0 or
                 pos[0] == self.width - 1 or
                 pos[1] == 0 or
